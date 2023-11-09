@@ -86,6 +86,7 @@ public class SubscriberSampler extends BaseJMSSampler implements Interruptible, 
     private static final String TIMEOUT = "jms.timeout"; // $NON-NLS-1$
     private static final String TIMEOUT_DEFAULT = ""; // $NON-NLS-1$
     private static final String DURABLE_SUBSCRIPTION_ID = "jms.durableSubscriptionId"; // $NON-NLS-1$
+    private static final String SHARED_SUBSCRIPTION = "jms.sharedSubscription"; // $NON-NLS-1$
     private static final String CLIENT_ID = "jms.clientId"; // $NON-NLS-1$
     private static final String JMS_SELECTOR = "jms.selector"; // $NON-NLS-1$
     private static final String DURABLE_SUBSCRIPTION_ID_DEFAULT = "";
@@ -116,6 +117,7 @@ public class SubscriberSampler extends BaseJMSSampler implements Interruptible, 
     private void initListenerClient() throws JMSException, NamingException {
         SUBSCRIBER = new ReceiveSubscriber(0, getUseJNDIPropertiesAsBoolean(), getJNDIInitialContextFactory(),
                     getProviderUrl(), getConnectionFactory(), getDestination(), getDurableSubscriptionId(),
+                    isSharedSubscription(),
                     getClientId(), getJmsSelector(), isUseAuth(), getUsername(), getPassword());
         log.debug("SubscriberSampler.initListenerClient called");
     }
@@ -128,7 +130,7 @@ public class SubscriberSampler extends BaseJMSSampler implements Interruptible, 
     private void initReceiveClient() throws NamingException, JMSException {
         SUBSCRIBER = new ReceiveSubscriber(getUseJNDIPropertiesAsBoolean(),
                 getJNDIInitialContextFactory(), getProviderUrl(), getConnectionFactory(), getDestination(),
-                getDurableSubscriptionId(), getClientId(), getJmsSelector(), isUseAuth(), getUsername(), getPassword());
+                getDurableSubscriptionId(), isSharedSubscription(), getClientId(), getJmsSelector(), isUseAuth(), getUsername(), getPassword());
         log.debug("SubscriberSampler.initReceiveClient called");
     }
 
@@ -443,6 +445,10 @@ public class SubscriberSampler extends BaseJMSSampler implements Interruptible, 
         return getPropertyAsString(DURABLE_SUBSCRIPTION_ID);
     }
 
+    public boolean isSharedSubscription() {
+        return getPropertyAsBoolean(SHARED_SUBSCRIPTION);
+    }
+
     /**
      * @return JMS Client ID
      */
@@ -459,6 +465,10 @@ public class SubscriberSampler extends BaseJMSSampler implements Interruptible, 
 
     public void setDurableSubscriptionId(String durableSubscriptionId){
         setProperty(DURABLE_SUBSCRIPTION_ID, durableSubscriptionId, DURABLE_SUBSCRIPTION_ID_DEFAULT);
+    }
+
+    public void setSharedSubscription(boolean selected) {
+        setProperty(SHARED_SUBSCRIPTION, selected, false);
     }
 
     /**

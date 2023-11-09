@@ -59,6 +59,9 @@ public class JMSSubscriberGui extends AbstractSamplerGui implements ChangeListen
 
     private final JTextField jmsDurableSubscriptionId = new JTextField();
 
+    private final JCheckBox jmsSharedSubscription =
+        new JCheckBox(JMeterUtils.getResString("jms_shared_subscription"), true);  // $NON-NLS-1$
+
     private final JTextField jmsClientId = new JTextField();
 
     private final JTextField jmsSelector = new JTextField();
@@ -144,6 +147,7 @@ public class JMSSubscriberGui extends AbstractSamplerGui implements ChangeListen
         sampler.setConnectionFactory(jndiConnFac.getText());
         sampler.setDestination(jmsDestination.getText());
         sampler.setDurableSubscriptionId(jmsDurableSubscriptionId.getText());
+        sampler.setSharedSubscription(jmsSharedSubscription.isSelected());
         sampler.setClientID(jmsClientId.getText());
         sampler.setJmsSelector(jmsSelector.getText());
         sampler.setUsername(jmsUser.getText());
@@ -197,7 +201,8 @@ public class JMSSubscriberGui extends AbstractSamplerGui implements ChangeListen
         mainPanel.add(destSetup);
 
         mainPanel.add(JMeterUtils.labelFor(jmsDurableSubscriptionId, "jms_durable_subscription_id"));
-        mainPanel.add(jmsDurableSubscriptionId, "span, growx");
+        mainPanel.add(jmsDurableSubscriptionId);
+        mainPanel.add(jmsSharedSubscription, "span");
 
         mainPanel.add(JMeterUtils.labelFor(jmsClientId, "jms_client_id"));
         mainPanel.add(jmsClientId, "span, growx");
@@ -242,6 +247,7 @@ public class JMSSubscriberGui extends AbstractSamplerGui implements ChangeListen
         jndiConnFac.setText(sampler.getConnectionFactory());
         jmsDestination.setText(sampler.getDestination());
         jmsDurableSubscriptionId.setText(sampler.getDurableSubscriptionId());
+        jmsSharedSubscription.setSelected(sampler.isSharedSubscription());
         jmsClientId.setText(sampler.getClientId());
         jmsSelector.setText(sampler.getJmsSelector());
         jmsUser.setText(sampler.getUsername());
@@ -269,6 +275,7 @@ public class JMSSubscriberGui extends AbstractSamplerGui implements ChangeListen
         jndiConnFac.setText(""); // $NON-NLS-1$
         jmsDestination.setText(""); // $NON-NLS-1$
         jmsDurableSubscriptionId.setText(""); // $NON-NLS-1$
+        jmsSharedSubscription.setText(""); // $NON-NLS-1$
         jmsClientId.setText(""); // $NON-NLS-1$
         jmsSelector.setText(""); // $NON-NLS-1$
         jmsUser.setText(""); // $NON-NLS-1$

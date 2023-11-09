@@ -89,6 +89,8 @@ public class ReceiveSubscriber implements Closeable, MessageListener {
      * @param durableSubscriptionId
      *            id for a durable subscription (if empty or <code>null</code>
      *            no durable subscription will be done)
+     * @param isSharedSubscription
+     *            flag whether subscription is shared
      * @param clientId
      *            client id to use (may be empty or <code>null</code>)
      * @param jmsSelector
@@ -109,11 +111,12 @@ public class ReceiveSubscriber implements Closeable, MessageListener {
      */
     public ReceiveSubscriber(boolean useProps,
             String initialContextFactory, String providerUrl, String connfactory, String destinationName,
-            String durableSubscriptionId, String clientId, String jmsSelector, boolean useAuth,
-            String securityPrincipal, String securityCredentials) throws NamingException, JMSException {
+            String durableSubscriptionId, boolean isSharedSubscription, String clientId, String jmsSelector,
+            boolean useAuth, String securityPrincipal, String securityCredentials)
+                throws NamingException, JMSException {
         this(0, useProps,
                 initialContextFactory, providerUrl, connfactory, destinationName,
-                durableSubscriptionId, clientId, jmsSelector, useAuth,
+                durableSubscriptionId, isSharedSubscription, clientId, jmsSelector, useAuth,
                 securityPrincipal, securityCredentials, false);
     }
 
@@ -144,6 +147,8 @@ public class ReceiveSubscriber implements Closeable, MessageListener {
      * @param durableSubscriptionId
      *            id for a durable subscription (if empty or <code>null</code>
      *            no durable subscription will be done)
+     * @param isSharedSubscription
+     *            flag whether subscription is shared
      * @param clientId
      *            client id to use (may be empty or <code>null</code>)
      * @param jmsSelector
@@ -164,11 +169,11 @@ public class ReceiveSubscriber implements Closeable, MessageListener {
      */
     public ReceiveSubscriber(int queueSize, boolean useProps,
             String initialContextFactory, String providerUrl, String connfactory, String destinationName,
-            String durableSubscriptionId, String clientId, String jmsSelector, boolean useAuth,
+            String durableSubscriptionId, boolean isSharedSubscription, String clientId, String jmsSelector, boolean useAuth,
             String securityPrincipal, String securityCredentials) throws NamingException, JMSException {
         this(queueSize,  useProps,
              initialContextFactory, providerUrl, connfactory, destinationName,
-             durableSubscriptionId, clientId, jmsSelector, useAuth,
+             durableSubscriptionId, isSharedSubscription, clientId, jmsSelector, useAuth,
              securityPrincipal,  securityCredentials, true);
     }
 
@@ -199,6 +204,8 @@ public class ReceiveSubscriber implements Closeable, MessageListener {
      * @param durableSubscriptionId
      *            id for a durable subscription (if empty or <code>null</code>
      *            no durable subscription will be done)
+     * @param isSharedSubscription
+     *            flag whether subscription is shared
      * @param clientId
      *            client id to use (may be empty or <code>null</code>)
      * @param jmsSelector
@@ -223,7 +230,7 @@ public class ReceiveSubscriber implements Closeable, MessageListener {
      */
     private ReceiveSubscriber(int queueSize, boolean useProps,
             String initialContextFactory, String providerUrl, String connfactory, String destinationName,
-            String durableSubscriptionId, String clientId, String jmsSelector, boolean useAuth,
+            String durableSubscriptionId, boolean isSharedSubscription, String clientId, String jmsSelector, boolean useAuth,
             String securityPrincipal, String securityCredentials, boolean useMessageListener) throws NamingException, JMSException {
         boolean initSuccess = false;
         try{
@@ -235,7 +242,7 @@ public class ReceiveSubscriber implements Closeable, MessageListener {
             }
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             Destination dest = Utils.lookupDestination(ctx, destinationName);
-            subscriber = createSubscriber(session, dest, durableSubscriptionId, jmsSelector);
+            subscriber = createSubscriber(session, dest, durableSubscriptionId, isSharedSubscription, jmsSelector);
             if(useMessageListener) {
                 if (queueSize <=0) {
                     queue = new LinkedBlockingQueue<>();
@@ -271,7 +278,7 @@ public class ReceiveSubscriber implements Closeable, MessageListener {
      */
     private static MessageConsumer createSubscriber(Session session,
             Destination destination, String durableSubscriptionId,
-            String jmsSelector) throws JMSException {
+            boolean isSharedSubscription, String jmsSelector) throws JMSException {
         if (isEmpty(durableSubscriptionId)) {
             if(isEmpty(jmsSelector)) {
                 return session.createConsumer(destination);
@@ -280,9 +287,17 @@ public class ReceiveSubscriber implements Closeable, MessageListener {
             }
         } else {
             if(isEmpty(jmsSelector)) {
-                return session.createDurableSubscriber((Topic) destination, durableSubscriptionId);
+                if (isSharedSubscription) {
+                    return session.createSharedDurableConsumer((Topic) destination, durableSubscriptionId);
+                } else {
+                    return session.createDurableSubscriber((Topic) destination, durableSubscriptionId);
+                }
             } else {
-                return session.createDurableSubscriber((Topic) destination, durableSubscriptionId, jmsSelector, false);
+                if (isSharedSubscription) {
+                    return session.createSharedDurableConsumer((Topic) destination, durableSubscriptionId, jmsSelector);
+                } else {
+                    return session.createDurableSubscriber((Topic) destination, durableSubscriptionId, jmsSelector, false);
+                }
             }
         }
     }
